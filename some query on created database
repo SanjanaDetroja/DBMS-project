@@ -1,0 +1,175 @@
+# Calculate the average length of user passwords.
+SELECT AVG(LENGTH(user_password)) AS avg_password_length
+FROM user_login;
+
+# Find the user with the longest password.
+SELECT first_name, last_name
+FROM user_login
+ORDER BY LENGTH(user_password) DESC
+LIMIT 1;
+
+# Find the user with the smallest password.
+SELECT first_name, last_name
+FROM user_login
+ORDER BY LENGTH(user_password) 
+LIMIT 1;
+
+# Count the number of users who signed up in each month of the current year.
+SELECT EXTRACT(MONTH FROM sign_up_on) AS sign_up_month, COUNT(*) AS user_count
+FROM user_login
+WHERE EXTRACT(YEAR FROM sign_up_on) = EXTRACT(YEAR FROM CURRENT_DATE)
+GROUP BY sign_up_month
+ORDER BY sign_up_month;
+
+# Update a customer's email address:
+UPDATE customers
+SET email_id = 'new.email@example.com'
+WHERE customer_id = 1;
+
+# Retrieve the customer with the most recent login:
+SELECT *
+FROM customers
+WHERE last_login = (SELECT MAX(last_login) FROM customers); 
+
+# Retrieve the top 5 customers with the highest number of logins: 
+SELECT customer_id, first_name, last_name, COUNT(*) AS login_count
+FROM customers
+GROUP BY customer_id, first_name, last_name
+ORDER BY login_count DESC
+LIMIT 5;
+
+# Calculate the total number of customers per email domain:
+SELECT SUBSTRING(email_id, POSITION('@' IN email_id) + 1) AS email_domain, COUNT(*) AS num_customers
+FROM customers
+GROUP BY email_domain;
+
+# Calculate the total number of customers who have registered in each year:
+SELECT EXTRACT(YEAR FROM last_login) AS registration_year, COUNT(*) AS num_customers
+FROM customers
+GROUP BY registration_year
+ORDER BY registration_year;
+
+# Retrieve all employees along with their employment type and vendor name (if applicable): 
+SELECT e.*, et.employment_type, et.vendor_name
+FROM employees e
+LEFT JOIN employment_type et ON e.employee_type = et.employment_type_id;
+
+# Find the employee with the earliest registration date: 
+SELECT *
+FROM employees
+ORDER BY registered_on 
+LIMIT 1;
+
+# Delete an employment type from the "employment_type" table and cascade delete related employees: 
+DELETE FROM employment_type
+WHERE employment_type_id = 1;
+
+# Calculate the total revenue generated for each payment mode:
+SELECT payment_mode, SUM(total_amount) AS total_revenue
+FROM payment
+GROUP BY payment_mode;
+
+# Find the payment with the highest total amount:
+SELECT *
+FROM payment
+ORDER BY total_amount DESC
+LIMIT 1;
+
+# Calculate the average payment amount for successful payments: 
+SELECT AVG(total_amount) AS avg_payment_amount
+FROM payment
+WHERE is_success = true;
+
+# Find the payment mode with the highest average payment amount:
+SELECT payment_mode, AVG(total_amount) AS avg_payment_amount
+FROM payment
+GROUP BY payment_mode
+ORDER BY avg_payment_amount DESC
+LIMIT 1 ;
+
+# Calculate the total number of failed payments: 
+SELECT COUNT(*) AS num_failed_payments
+FROM payment
+WHERE is_success = false;
+
+# Retrieve the top 5 most expensive items in stock:  
+SELECT *
+FROM product_items
+WHERE stock_count > 0
+ORDER BY amount DESC
+LIMIT 5;
+
+# Calculate the total value of items in each item type:
+SELECT item_type, SUM(amount * stock_count) AS total_value
+FROM product_items
+GROUP BY item_type;
+
+# Calculate the total revenue generated from items sold by each seller:
+SELECT sold_by, SUM((amount - (amount * discount / 100)) * stock_count) AS total_revenue
+FROM product_items
+GROUP BY sold_by;
+
+# Retrieve items that have a lower discount percentage than the average discount percentage: 
+SELECT *
+FROM product_items
+WHERE discount < (SELECT AVG(discount) FROM product_items);
+
+# Retrieve the average rating for each product item, along with the product name and description: 
+SELECT p.item_name, p.item_description, AVG(r.rating) AS avg_rating
+FROM Reviews r
+JOIN product_items p ON r.item_id = p.item_id
+GROUP BY p.item_name, p.item_description;
+
+# Find the product items with the highest average ratings:
+SELECT p.item_name, AVG(r.rating) AS avg_rating
+FROM Reviews r
+JOIN product_items p ON r.item_id = p.item_id
+GROUP BY p.item_name
+ORDER BY avg_rating DESC
+LIMIT 5;
+
+# Find the customers who have provided reviews for the most number of product items: 
+SELECT c.first_name, c.last_name, COUNT(DISTINCT r.item_id) AS reviewed_items_count
+FROM Reviews r
+JOIN customers c ON r.customerID = c.customer_id
+GROUP BY c.first_name, c.last_name
+ORDER BY reviewed_items_count DESC
+LIMIT 5;
+
+# Retrieve the most recent review (by Review_Date) for each product item: 
+SELECT p.item_name, r.*
+FROM Reviews r
+JOIN product_items p ON r.item_id = p.item_id
+WHERE (r.item_id, r.Review_Date) IN (SELECT item_id, MAX(Review_Date) FROM Reviews GROUP BY item_id);
+
+# Find the customers who have the most items in their cart:
+SELECT customerID, COUNT(item_id) AS num_items_in_cart
+FROM Cart
+GROUP BY customerID
+ORDER BY num_items_in_cart DESC
+LIMIT 5;
+
+# Retrieve the total quantity of each product item across all customer carts: 
+SELECT item_id, SUM(Quantity) AS total_quantity_in_carts
+FROM Cart
+GROUP BY item_id;
+
+# Calculate the average quantity of items in customers' carts: 
+SELECT AVG(Quantity) AS avg_quantity_in_cart
+FROM Cart;
+
+# Find the items that are in multiple customers' carts: 
+SELECT item_id, COUNT(DISTINCT customerID) AS num_customers_with_item
+FROM Cart
+GROUP BY item_id
+HAVING COUNT(DISTINCT customerID) > 1;
+
+
+
+
+
+
+
+
+
+
